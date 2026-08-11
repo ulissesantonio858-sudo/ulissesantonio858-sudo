@@ -1,50 +1,67 @@
-# Olá, eu sou o Ulisses Dev 
+<div align="center">
 
-Sou Desenvolvedor Full-Stack em formação, focado em desenvolvimento web, criação de APIs e desenvolvimento de sistemas completos.
+# 👋 ULISSES ANTÓNIO
 
-Atualmente estou a concluir a formação em **Gestão e Programação de Sistemas Informáticos** e realizo estágio na **Arquiconsult**, onde trabalho com **Microsoft Power Platform**, **Power Apps**, **Dataverse**, **Power Automate** e **Model-driven Apps**.
+### Full-Stack Developer | Power Platform | Web Development
 
-##  Tecnologias e ferramentas
+💻 Building real-world applications  
+🚀 Always learning. Always building.  
+🇵🇹 Portugal
 
-- HTML, CSS e JavaScript
-- React.js
-- Node.js e Express.js
-- Python e Flask
-- C# e C
-- Microsoft Power Apps
-- Microsoft Dataverse
-- Power Automate
-- Model-driven Apps
-- APIs REST
-- Git e GitHub
-- Visual Studio Code
+</div>
 
-## Projetos em destaque
+---
 
-### Vehicle Reservation System
-Sistema de reserva e gestão de veículos desenvolvido com Microsoft Power Apps, Dataverse e Power Automate.
+## 🧑‍💻 ABOUT ME
 
-### 🛒 Flask E-commerce Platform
-Plataforma web de e-commerce desenvolvida com Python, Flask, HTML, CSS, JavaScript e SQLAlchemy.
+Olá! Sou o **Ulisses António**, um desenvolvedor Full-Stack em início de carreira,
+apaixonado por tecnologia, desenvolvimento web e criação de soluções para
+problemas reais.
 
-###  User Registration Page
-Página de cadastro de utilizadores com frontend e backend utilizando Node.js e Express.
+Atualmente estou focado em:
 
-###  Responsive Website
-Website responsivo criado com HTML, CSS e JavaScript.
+- 🌐 Desenvolvimento Web
+- ⚙️ Backend e criação de APIs
+- ⚛️ React
+- 🟢 Node.js & Express
+- 🐍 Python & Flask
+- ☁️ Microsoft Power Platform
+- 🗄️ Databases
+- 🔧 Git & GitHub
 
-##  Objetivo
+Tenho experiência prática no desenvolvimento de aplicações utilizando
+**Microsoft Power Apps, Dataverse e Power Automate**, além de projetos
+independentes em desenvolvimento Full-Stack.
 
-Continuar a evoluir como Desenvolvedor Full-Stack, melhorar as minhas competências técnicas, desenvolver projetos reais e crescer profissionalmente na área da programação.
+---
 
-##  Atualmente a aprender
+## 💻 DEVELOPER TERMINAL
 
-- Inglês para tecnologia
-- React.js
-- Boas práticas de desenvolvimento
-- Organização de projetos no GitHub
+```bash
+$ whoami
 
-## Contacto
+Ulisses António
 
-- GitHub: [github.com/ulissesantonio858-sudo](https://github.com/ulissesantonio858-sudo)
-- TikTok: [@ulisses.dev](https://www.tiktok.com/@ulisses.dev)
+$ role
+
+Full-Stack Developer
+
+$ location
+
+Portugal 🇵🇹
+
+$ focus
+
+Web Development
+APIs
+Backend
+Power Platform
+Software Development
+
+$ mindset
+
+Learn → Build → Test → Improve
+
+$ status
+
+Always learning... 🚀
