@@ -7,7 +7,7 @@
 Transformo ideias em experiências digitais claras, rápidas e fáceis de usar.
 
 [![Ver projetos](https://img.shields.io/badge/Explorar_projetos-7C3AED?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ulissesantonio858-sudo?tab=repositories)
-[![Entrar em contacto](https://img.shields.io/badge/Entrar_em_contacto-18181B?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ulissesantonio858-sudo)
+[![Entrar em contacto](https://img.shields.io/badge/Entrar_em_contacto-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ulisses-ant%C3%B4nio-62a4a2317/)
 
 📍 Portugal · Disponível para projetos freelance
 
@@ -58,6 +58,6 @@ Sou o Ulisses, desenvolvedor Full Stack em Portugal. Tenho trabalhado em projeto
 
 ### Tens um projeto em mente?
 
-[Explora os meus repositórios](https://github.com/ulissesantonio858-sudo?tab=repositories) · [Visita o meu perfil para entrar em contacto](https://github.com/ulissesantonio858-sudo)
+[Explora os meus repositórios](https://github.com/ulissesantonio858-sudo?tab=repositories) · [Entra em contacto pelo LinkedIn](https://www.linkedin.com/in/ulisses-ant%C3%B4nio-62a4a2317/)
 
 </div>
