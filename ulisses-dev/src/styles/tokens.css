@@ -1,0 +1,42 @@
+:root {
+  /* Cores observadas no Figma */
+  --c-bg: #000000;
+  --c-lavender: #cab8f9;
+  --c-lavender-2: #bda7f9;
+  --c-purple: #5e30dd;
+  --c-purple-active: #6013a9;
+  --c-purple-deep: #570f9c;
+  --c-body: #fff6f6;
+  --c-display: rgba(255, 255, 255, 0.85);
+  --c-nav: rgba(168, 147, 196, 0.49);
+  --c-tabs: rgba(226, 218, 233, 0.76);
+  --c-card: rgba(26, 26, 26, 0.11);
+  --c-ink: #1b1530;
+  --c-ink-soft: #3a3150;
+  --c-dark-btn: #0e0b16;
+  --c-line: rgba(255, 255, 255, 0.14);
+  --c-muted: rgba(255, 246, 246, 0.72);
+  --c-focus: #e7dcff;
+
+  /* Tipografia */
+  --f-display: 'Clash Display', 'Space Grotesk', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Raios (referência a 1920 px) */
+  --r-section: clamp(24px, 2.6vw, 50px);
+  --r-card: clamp(28px, 3.8vw, 73px);
+  --r-pill: 999px;
+
+  /* Espaçamento */
+  --gutter: clamp(20px, 4vw, 64px);
+  --space-section: clamp(72px, 9vw, 160px);
+  --max-page: 1920px;
+  --max-text: 64ch;
+
+  /* Movimento */
+  --t-control: 200ms;
+  --t-enter: 560ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --header-offset: 24px;
+}
