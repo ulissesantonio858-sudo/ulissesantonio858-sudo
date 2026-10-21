@@ -32,13 +32,9 @@ O `capture` usa o Chrome instalado; noutro browser: `CHROME_PATH=/caminho/chrome
 
 ## Pendências
 
-1. **Clash Display não instalada.** Os títulos usam Space Grotesk como fallback, e a fidelidade tipográfica ainda não está validada. Para fechar:
-   1. Descarregar em https://www.fontshare.com/fonts/clash-display e copiar para `public/fonts/` só `ClashDisplay-Medium.woff2`, `ClashDisplay-Semibold.woff2`, `ClashDisplay-Bold.woff2` + a licença como `LICENSE-ClashDisplay.txt`.
-   2. Em `src/main.tsx`: descomentar `import './styles/fonts-clash.css'` e remover os três imports de Space Grotesk; `npm uninstall @fontsource/space-grotesk`.
-   3. Em `tokens.css`: `--f-display: 'Clash Display', system-ui, sans-serif`.
-   4. Em `index.html`: descomentar o `preload` de `ClashDisplay-Medium.woff2`.
-   5. `npm run build && npm run preview` e `npm run capture`: confirmar `clashLoaded: true` e larguras a 1920 px perto de 659 / 101 / 1184 px (Developer / & / Web Designer). Nota: `document.fonts.check('500 40px "Clash Display"')` devolve `true` mesmo sem a fonte; não serve como prova.
-   6. `npm run capture -- --og` para regenerar a imagem de partilha.
+1. **Clash Display Semibold (600) em falta.** Estão instaladas a Medium (500) e a Bold (700), convertidas de OTF para WOFF2. Os títulos a 600 (secções, tabs, “Crio sites profissionais”) estão a sair em Bold. Para fechar: converter `ClashDisplay-Semibold.otf` para `public/fonts/ClashDisplay-Semibold.woff2` (ex.: `fonttools ttLib.woff2 compress`), descomentar o `@font-face` em `src/styles/fonts-clash.css` e correr `npm run capture -- --og`.
+   - Larguras a 1920 px com a Medium: Developer 647 px (Figma 659, −1,8 %), & 90 px (101), Web Designer 1166 px (1184, −1,5 %). Sem ajuste de `letter-spacing`.
+   - `document.fonts.check('500 40px "Clash Display"')` devolve `true` mesmo sem a fonte; o `npm run capture` reporta `clashLoaded`, que verifica faces efetivamente carregadas.
 2. **Retrato:** `public/media/hero-ulisses-*.webp` foi gerado a partir de uma cópia WebP (1813 × 1110, com transparência) da composição, não do PNG original de 2,5 MB. Visualmente está bem, mas convém regenerar os dois WebP a partir do PNG original exportado do Figma (nó `163:22`).
 3. **Contactos:** email, WhatsApp e Facebook por configurar em `CONTACT_CONFIG`.
 4. **Projetos:** Elevon.pt está como rascunho (`published: false`): confirmar a descrição da participação (manutenção), tecnologias, URL e imagem antes de publicar.

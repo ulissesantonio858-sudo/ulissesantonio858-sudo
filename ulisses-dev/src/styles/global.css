@@ -313,7 +313,6 @@ button {
   font-weight: 500;
   font-size: clamp(36px, 11.4vw, 92px);
   line-height: 1.02;
-  letter-spacing: -0.01em;
   color: var(--c-display);
   text-shadow: 0 2px 28px rgba(0, 0, 0, 0.35);
   pointer-events: none;

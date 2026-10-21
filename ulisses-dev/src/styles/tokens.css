@@ -19,7 +19,7 @@
   --c-focus: #e7dcff;
 
   /* Tipografia */
-  --f-display: 'Clash Display', 'Space Grotesk', system-ui, sans-serif;
+  --f-display: 'Clash Display', system-ui, sans-serif;
   --f-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Raios (referência a 1920 px) */
