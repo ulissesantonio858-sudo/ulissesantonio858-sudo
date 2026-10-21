@@ -1,4 +1,5 @@
 import { CONTACT_CONFIG, HERO, SITE } from '../content/portfolio'
+import { media } from '../media'
 import { ArrowLink } from './ArrowButton'
 import { Navigation, type NavLink } from './Navigation'
 
@@ -14,8 +15,8 @@ export function Hero({ links }: { links: NavLink[] }) {
       <div className="hero__frame">
         <img
           className="hero__portrait"
-          src="/media/hero-ulisses-1813.webp"
-          srcSet="/media/hero-ulisses-960.webp 960w, /media/hero-ulisses-1813.webp 1813w"
+          src={media('hero-ulisses-1813.webp')}
+          srcSet={`${media('hero-ulisses-960.webp')} 960w, ${media('hero-ulisses-1813.webp')} 1813w`}
           sizes="(min-width: 1200px) 95vw, (min-width: 900px) 55vw, 100vw"
           width={1813}
           height={1110}
@@ -54,7 +55,7 @@ export function Hero({ links }: { links: NavLink[] }) {
             {SOCIALS.map((s) => (
               <li key={s.key} className={`hero__social-${s.key}`}>
                 <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (abre numa nova janela)`}>
-                  <img src={`/media/${s.file}`} width={s.w} height={s.h} alt="" />
+                  <img src={media(s.file)} width={s.w} height={s.h} alt="" />
                 </a>
               </li>
             ))}
