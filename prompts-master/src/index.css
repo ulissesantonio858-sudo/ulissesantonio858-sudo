@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-bg font-sans text-[17px] leading-[1.65] text-ink antialiased;
+    overflow-x: hidden;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display text-ink;
+    text-wrap: balance;
+  }
+  ::selection {
+    background: rgba(118, 89, 248, 0.45);
+  }
+  :focus-visible {
+    outline: 2px solid #a997ff;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  .wrap {
+    @apply mx-auto w-full max-w-content px-5 md:px-8;
+  }
+  .section {
+    @apply py-20 md:py-28;
+  }
+  .h2 {
+    @apply text-[32px] font-medium leading-[1.12] tracking-[-0.025em] sm:text-[40px] lg:text-[44px];
+  }
+  .lead {
+    @apply text-[17px] leading-[1.65] text-muted md:text-lg;
+  }
+  .btn {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full px-6 text-[15px] font-semibold transition duration-200;
+  }
+  .btn-primary {
+    @apply btn bg-violet text-white shadow-[0_8px_30px_-8px_rgba(118,89,248,0.8)] hover:bg-[#8569ff] hover:shadow-[0_10px_40px_-6px_rgba(118,89,248,0.9)];
+  }
+  .btn-light {
+    @apply btn bg-ink text-bg hover:bg-white;
+  }
+  .btn-ghost {
+    @apply btn border border-line-strong bg-white/[0.03] text-ink hover:border-violet-light hover:bg-white/[0.06];
+  }
+  .card {
+    @apply rounded-card border border-line bg-surface shadow-card;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line-strong bg-white/[0.04] px-3 py-1 text-[13px] font-semibold text-ink/90;
+  }
+}
+
+/* Entrada discreta das secções */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Órbitas da hero (proposta de implementação: movimento lento) */
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.orbit-spin {
+  animation: orbit-spin 60s linear infinite;
+  transform-origin: center;
+}
+.orbit-spin-rev {
+  animation: orbit-spin 90s linear infinite reverse;
+  transform-origin: center;
+}
+
+/* Transição luminosa entre secções, inspirada na referência A:
+   dois arcos escuros que deixam uma faixa de luz estreita ao centro e aberta nas laterais. */
+.light-seam {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: radial-gradient(60% 50% at 50% 50%, rgba(236, 246, 255, 0.95) 0%, rgba(153, 219, 255, 0.85) 25%, rgba(118, 89, 248, 0.55) 55%, rgba(6, 11, 22, 0) 85%);
+}
+.light-seam::before,
+.light-seam::after {
+  content: '';
+  position: absolute;
+  left: -25%;
+  right: -25%;
+  height: 260px;
+  border-radius: 50%;
+  background: #060b16;
+  box-shadow: 0 0 36px 6px rgba(118, 89, 248, 0.35);
+}
+.light-seam::before {
+  bottom: 50%;
+  margin-bottom: 14px;
+}
+.light-seam::after {
+  top: 50%;
+  margin-top: 14px;
+}
+@media (max-width: 640px) {
+  .light-seam {
+    height: 140px;
+  }
+  .light-seam::before,
+  .light-seam::after {
+    height: 160px;
+  }
+}
+
+/* Comparação antes/depois: o input range cobre a área e dá controlo por teclado e toque */
+.compare-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: ew-resize;
+}
+.compare-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 44px;
+  height: 100%;
+  min-height: 200px;
+  background: transparent;
+}
+.compare-range::-moz-range-thumb {
+  width: 44px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+.compare-range:focus-visible + .compare-handle .compare-knob {
+  outline: 2px solid #a997ff;
+  outline-offset: 3px;
+}
+
+dialog::backdrop {
+  background: rgba(3, 6, 14, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .orbit-spin,
+  .orbit-spin-rev {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
