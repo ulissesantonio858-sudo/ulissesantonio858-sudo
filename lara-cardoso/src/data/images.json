@@ -1,0 +1,7 @@
+{
+  "lara-cardoso-recorte": { "source": "lara-cardoso-recorte.webp", "widths": [480, 720, 960], "width": 1121, "height": 1403 },
+  "caramelo-balayage": { "source": "caramelo-balayage.jpg", "widths": [240, 480, 720], "width": 1596, "height": 2000 },
+  "ruivo-cobre": { "source": "ruivo-cobre.jpg", "widths": [240, 480, 720], "width": 1500, "height": 2000 },
+  "alisamento-brasileiro": { "source": "alisamento-brasileiro.jpg", "widths": [240, 480, 640], "width": 640, "height": 1136 },
+  "morena-iluminada": { "source": "morena-iluminada.jpg", "widths": [240, 480, 720], "width": 1500, "height": 2000 }
+}
