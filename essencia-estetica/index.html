@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Essência Estética — Beleza natural</title>
+  <meta name="description" content="Essência Estética: cuidados de pele, design de sobrancelhas e micropigmentação labial. Página demonstrativa.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Marcellus&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="assets/hero.jpg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+
+  <!-- Ícones lineares reutilizados -->
+  <svg width="0" height="0" class="visually-hidden" aria-hidden="true">
+    <symbol id="i-flor" viewBox="0 0 32 32">
+      <path d="M16 29c-3.6-2.4-6.2-6-6.2-10.2 0-3.2 2-6.5 6.2-9.8 4.2 3.3 6.2 6.6 6.2 9.8C22.2 23 19.6 26.6 16 29Z" fill="currentColor"/>
+      <path d="M14.6 28.6C9 27.7 4 23.6 3.2 15.6c3.8.2 6.5 1.4 8.3 3.2" fill="currentColor" opacity=".8"/>
+      <path d="M17.4 28.6c5.6-.9 10.6-5 11.4-13-3.8.2-6.5 1.4-8.3 3.2" fill="currentColor" opacity=".8"/>
+      <path d="M11.3 10.6C10.6 7.9 10.9 5.3 12.2 3c1.6 1.4 2.8 3 3.5 4.7" fill="currentColor" opacity=".65"/>
+      <path d="M20.7 10.6c.7-2.7.4-5.3-.9-7.6-1.6 1.4-2.8 3-3.5 4.7" fill="currentColor" opacity=".65"/>
+    </symbol>
+    <symbol id="i-seta" viewBox="0 0 16 16"><path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-telefone" viewBox="0 0 24 24"><path d="M6.6 3.5 9 3l1.6 4-2 1.3a11 11 0 0 0 7.1 7.1l1.3-2 4 1.6-.5 2.4a2 2 0 0 1-2 1.6A15.6 15.6 0 0 1 5 5.5a2 2 0 0 1 1.6-2Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M14.5 3.5a6 6 0 0 1 6 6M14.5 6.5a3 3 0 0 1 3 3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+    <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 9.5h17M8 3v4M16 3v4M9.5 14.5l2 2 3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <header class="site-header" id="topo">
+    <div class="container header-inner">
+      <a class="logo" href="#inicio" aria-label="Essência — início">
+        <svg class="logo-icon" aria-hidden="true"><use href="#i-flor"/></svg>
+        <span class="logo-word">Essência</span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Abrir menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="header-menu" id="menu-principal">
+        <nav aria-label="Navegação principal">
+          <ul class="nav-list">
+            <li><a href="#inicio" class="is-active" aria-current="true">Início</a></li>
+            <li><a href="#o-salao">O salão</a></li>
+            <li><a href="#servicos">Serviços</a></li>
+            <li><a href="#destaques">Destaques</a></li>
+            <li><a href="#beneficios">Benefícios</a></li>
+            <li><a href="#contacto" data-open-booking>Contacto</a></li>
+          </ul>
+        </nav>
+        <button class="header-phone" type="button" data-open-booking>
+          <svg aria-hidden="true"><use href="#i-telefone"/></svg>
+          Por marcação
+        </button>
+        <button class="btn-outline" type="button" data-open-booking>
+          <svg aria-hidden="true"><use href="#i-calendario"/></svg>
+          Reservar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <!-- HERO -->
+    <section class="hero" id="inicio" aria-labelledby="hero-titulo">
+      <img class="hero-img" src="assets/hero.jpg" width="1376" height="774"
+           alt="Mulher de olhos fechados, deitada, a receber uma massagem facial com as mãos da profissional junto às têmporas.">
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="container hero-content">
+        <p class="eyebrow-line">Essência</p>
+        <h1 id="hero-titulo">Beleza natural</h1>
+        <p class="hero-sub">Um espaço onde a sua beleza é cuidada, do rosto ao corpo, com tempo e atenção.</p>
+        <a class="btn" href="#servicos">Ver serviços <svg aria-hidden="true"><use href="#i-seta"/></svg></a>
+      </div>
+      <a class="scroll-cue" href="#destaques" aria-label="Descer para a secção seguinte">
+        <span>Scroll</span>
+      </a>
+    </section>
+
+    <!-- DESTAQUES -->
+    <section class="highlights" id="destaques" aria-label="Destaques">
+      <div class="container highlights-grid">
+        <div class="highlight highlight--raised">
+          <span class="badge">O seu momento de cuidado</span>
+          <svg class="highlight-icon" viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M20 33c-4.4-3-7.4-7.2-7.4-12 0-3.8 2.4-7.6 7.4-11.5 5 3.9 7.4 7.7 7.4 11.5 0 4.8-3 9-7.4 12Z"/>
+            <path d="M18.4 32.6C11.6 31.6 5.8 26.8 5 17.4c4.4.3 7.6 1.6 9.6 3.7M21.6 32.6c6.8-1 12.6-5.8 13.4-15.2-4.4.3-7.6 1.6-9.6 3.7"/>
+            <path d="M20 16v12M17 22.5l3 2.5 3-2.5"/>
+          </svg>
+          <div>
+            <h2 class="highlight-title">Um espaço dedicado a si</h2>
+            <p class="highlight-text">Beleza e bem-estar com atenção em cada detalhe.</p>
+          </div>
+        </div>
+        <div class="highlight">
+          <svg class="highlight-icon" viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M20 5.5c-6.6 0-11 5.4-11 12.4 0 4.6 1.6 8.6 4.4 11.4 1.9 1.9 4.2 3.2 6.6 3.2s4.7-1.3 6.6-3.2c2.8-2.8 4.4-6.8 4.4-11.4 0-7-4.4-12.4-11-12.4Z"/>
+            <path d="M14 16.5c1.3-1 2.8-1.3 4.3-.9M26 16.5c-1.3-1-2.8-1.3-4.3-.9M14.6 20.5c.9.7 2 .7 2.9 0M22.5 20.5c.9.7 2 .7 2.9 0M17 26.5c1.9 1.2 4.1 1.2 6 0"/>
+            <path d="M31.5 6.5v5M29 9h5"/>
+          </svg>
+          <div>
+            <h2 class="highlight-title"><a href="#servicos">Descubra os nossos cuidados de rosto</a></h2>
+            <p class="highlight-text">Conheça os serviços e encontre o seu próximo cuidado.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- O SALÃO -->
+    <section class="about" id="o-salao" aria-labelledby="salao-titulo">
+      <div class="container">
+        <div class="about-grid">
+          <img class="about-img" src="assets/salao.jpg" width="1192" height="894" loading="lazy" decoding="async"
+               alt="Profissional com luvas brancas a desenhar as linhas de preparação das sobrancelhas numa cliente deitada, com touca clara.">
+          <div class="about-text">
+            <p class="eyebrow">Sobre o salão</p>
+            <h2 class="section-title" id="salao-titulo">Cuidar da sua<br> beleza natural</h2>
+            <p>Na Essência, cada cuidado começa por si. Dos cuidados de pele ao desenho de sobrancelhas e à micropigmentação labial, dedicamos atenção ao que procura e ao momento que quer reservar para si.</p>
+            <a class="btn" href="#beneficios">O nosso espaço <svg aria-hidden="true"><use href="#i-seta"/></svg></a>
+          </div>
+        </div>
+
+        <ul class="pillars">
+          <li>
+            <h3 class="pillar-title"><span class="pillar-num">01</span>Cuidado personalizado</h3>
+            <p>Um cuidado pensado para as suas preferências e a sua rotina.</p>
+          </li>
+          <li>
+            <h3 class="pillar-title"><span class="pillar-num">02</span>Beleza com naturalidade</h3>
+            <p>Atenção ao que torna a sua beleza única.</p>
+          </li>
+          <li>
+            <h3 class="pillar-title"><span class="pillar-num">03</span>Tempo para si</h3>
+            <p>Uma pausa para cuidar de si com tranquilidade.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SERVIÇOS -->
+    <section class="services" id="servicos" aria-labelledby="servicos-titulo">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow">Serviços de estética</p>
+          <h2 class="section-title" id="servicos-titulo">Cuidados para a sua beleza natural</h2>
+        </header>
+
+        <ul class="cards">
+          <li class="card">
+            <img class="card-img" src="assets/servico-pele.jpg" width="900" height="600" loading="lazy" decoding="async" style="object-position: 50% 40%"
+                 alt="Cliente deitada a receber um tratamento facial com um pequeno equipamento, aplicado por uma profissional com luvas.">
+            <div class="card-body">
+              <h3 class="card-title">Cuidados de pele</h3>
+              <button class="link-explore" type="button" data-open-booking data-service="Cuidados de pele" aria-label="Explorar Cuidados de pele">
+                Explorar <svg aria-hidden="true"><use href="#i-seta"/></svg>
+              </button>
+            </div>
+          </li>
+          <li class="card">
+            <img class="card-img" src="assets/servico-sobrancelhas.jpg" width="900" height="600" loading="lazy" decoding="async" style="object-position: 50% 45%"
+                 alt="Grande plano de uma sobrancelha e de uma mão com luva a realizar um cuidado de precisão.">
+            <div class="card-body">
+              <h3 class="card-title">Design de sobrancelhas</h3>
+              <button class="link-explore" type="button" data-open-booking data-service="Design de sobrancelhas" aria-label="Explorar Design de sobrancelhas">
+                Explorar <svg aria-hidden="true"><use href="#i-seta"/></svg>
+              </button>
+            </div>
+          </li>
+          <li class="card">
+            <img class="card-img" src="assets/servico-labios.jpg" width="900" height="600" loading="lazy" decoding="async" style="object-position: 55% 45%"
+                 alt="Procedimento de micropigmentação nos lábios de uma cliente deitada, com as mãos enluvadas da profissional.">
+            <div class="card-body">
+              <h3 class="card-title">Micropigmentação labial</h3>
+              <button class="link-explore" type="button" data-open-booking data-service="Micropigmentação labial" aria-label="Explorar Micropigmentação labial">
+                Explorar <svg aria-hidden="true"><use href="#i-seta"/></svg>
+              </button>
+            </div>
+          </li>
+        </ul>
+
+        <div class="center">
+          <button class="btn" type="button" data-open-booking>Todos os serviços <svg aria-hidden="true"><use href="#i-seta"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENEFÍCIOS -->
+    <section class="benefits" id="beneficios" aria-labelledby="beneficios-titulo">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow">Porquê escolher a Essência?</p>
+          <h2 class="section-title" id="beneficios-titulo">Cuidados de beleza à sua medida</h2>
+        </header>
+
+        <ul class="benefit-grid">
+          <li class="benefit">
+            <svg class="benefit-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M6 30c3-1 6-1 9 1l6 4c1.5 1 3.5.6 4.5-.9.8-1.2.5-2.8-.6-3.7L18 25"/>
+              <path d="M6 37c4-1 8 0 12 2.5 3 1.8 6 2 9 .8l13-5.3c1.6-.7 2.2-2.6 1.3-4-.7-1.1-2.1-1.6-3.3-1.1L28 33"/>
+              <path d="M30 6c3 3 4.5 6.3 4.5 9.8 0 3-1.5 5.6-4.5 7.7-3-2.1-4.5-4.7-4.5-7.7C25.5 12.3 27 9 30 6Z"/>
+              <path d="M38 13c1.6 2.4 1.8 4.9.6 7.4"/>
+            </svg>
+            <div>
+              <h3 class="benefit-title">Cuidado em cada gesto</h3>
+              <p>Tempo e atenção dedicados ao seu momento de beleza.</p>
+            </div>
+          </li>
+          <li class="benefit">
+            <svg class="benefit-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M10 40h28M13 40c0-6 4.9-10 11-10s11 4 11 10"/>
+              <path d="M24 30V20"/>
+              <path d="M24 20c-4.5 0-7.5-3-7.5-7.5 4.5 0 7.5 3 7.5 7.5ZM24 20c4.5 0 7.5-3 7.5-7.5-4.5 0-7.5 3-7.5 7.5Z"/>
+              <path d="M24 13c-1.8-1.8-2.5-4-2-6.5 1.2.2 2.2.8 2 1.3.8-.8 1.6-1.2 2-1.3.5 2.5-.2 4.7-2 6.5Z"/>
+            </svg>
+            <div>
+              <h3 class="benefit-title">Um ambiente para relaxar</h3>
+              <p>Um espaço tranquilo para fazer uma pausa no seu dia.</p>
+            </div>
+          </li>
+          <li class="benefit">
+            <svg class="benefit-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M8 24h20v6a10 10 0 0 1-20 0v-6Z"/>
+              <path d="M28 26h2.5a3.5 3.5 0 0 1 0 7H27"/>
+              <path d="M14 18c-1.5-2 1.5-3.5 0-6M21 18c-1.5-2 1.5-3.5 0-6"/>
+              <rect x="33" y="10" width="8" height="18" rx="2"/>
+              <path d="M35 10V7h4v3M33 16h8"/>
+            </svg>
+            <div>
+              <h3 class="benefit-title">Cuidados à sua medida</h3>
+              <p>Escolhas que acompanham as suas preferências e necessidades.</p>
+            </div>
+          </li>
+          <li class="benefit">
+            <svg class="benefit-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <rect x="7" y="22" width="11" height="19" rx="2"/>
+              <path d="M10 22v-4h5v4M9.5 18v-5h6v5"/>
+              <rect x="21" y="17" width="10" height="24" rx="2.5"/>
+              <path d="M23.5 17v-3h5v3M26 10v4M24 10h4"/>
+              <path d="M34 41h7v-9a3.5 3.5 0 0 0-7 0v9ZM37.5 28.5V25"/>
+              <path d="M24 29h4M10 30h5"/>
+            </svg>
+            <div>
+              <h3 class="benefit-title">Produtos selecionados</h3>
+              <p>Atenção aos produtos usados em cada etapa do cuidado.</p>
+            </div>
+          </li>
+          <li class="benefit">
+            <svg class="benefit-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M24 7c-8 0-13 6-13 14 0 9 5.6 17 13 17s13-8 13-17c0-8-5-14-13-14Z"/>
+              <path d="M11.5 17C15 13 19 10 25 9.5c4 3.5 8 6 11.5 7"/>
+              <path d="M18 22.5c1.2.8 2.6.8 3.8 0M26.2 22.5c1.2.8 2.6.8 3.8 0M20.5 30c2.3 1.4 4.7 1.4 7 0"/>
+              <path d="M16 42c2.4-1.3 5-2 8-2s5.6.7 8 2"/>
+            </svg>
+            <div>
+              <h3 class="benefit-title">Atenção a cada detalhe</h3>
+              <p>Do primeiro contacto ao final do seu atendimento.</p>
+            </div>
+          </li>
+          <li class="benefit">
+            <svg class="benefit-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M16 42V31c-3-2-5-5.5-5-9.5V13a2 2 0 0 1 4 0v7M15 20v-11a2 2 0 0 1 4 0v10M19 19V8a2 2 0 0 1 4 0v11M23 19v-9a2 2 0 0 1 4 0v13.5"/>
+              <path d="M27 23.5l2.4-3.4a2 2 0 0 1 3.2 2.4L28 31v11"/>
+              <path d="M36 9c1.8 1.8 2.6 3.8 2.6 5.8 0 1.8-.9 3.3-2.6 4.6-1.7-1.3-2.6-2.8-2.6-4.6 0-2 .8-4 2.6-5.8Z"/>
+            </svg>
+            <div>
+              <h3 class="benefit-title">Beleza de rosto e corpo</h3>
+              <p>Diferentes cuidados num espaço dedicado ao seu bem-estar.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- DIÁLOGO DE RESERVA (demonstração) -->
+  <dialog class="booking" id="contacto" aria-labelledby="booking-titulo" aria-describedby="booking-nota">
+    <div class="booking-inner">
+      <button class="booking-close" type="button" data-close-booking aria-label="Fechar">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3 3 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="booking-form-view">
+        <p class="eyebrow">Reserva</p>
+        <h2 class="booking-title" id="booking-titulo">Peça o seu momento de cuidado</h2>
+        <p class="booking-note" id="booking-nota">Esta página é uma demonstração: nenhum pedido é enviado e nenhuma marcação é criada.</p>
+
+        <form class="booking-form" novalidate>
+          <div class="field">
+            <label for="f-nome">Nome</label>
+            <input id="f-nome" name="nome" type="text" autocomplete="name" required aria-describedby="e-nome">
+            <p class="field-error" id="e-nome" aria-live="polite"></p>
+          </div>
+          <div class="field">
+            <label for="f-email">E-mail</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" required aria-describedby="e-email">
+            <p class="field-error" id="e-email" aria-live="polite"></p>
+          </div>
+          <fieldset class="field">
+            <legend>Serviço de interesse</legend>
+            <div class="service-options">
+              <label class="service-option"><input type="radio" name="servico" value="Cuidados de pele" required> <span>Cuidados de pele</span></label>
+              <label class="service-option"><input type="radio" name="servico" value="Design de sobrancelhas"> <span>Design de sobrancelhas</span></label>
+              <label class="service-option"><input type="radio" name="servico" value="Micropigmentação labial"> <span>Micropigmentação labial</span></label>
+            </div>
+            <p class="field-error" id="e-servico" aria-live="polite"></p>
+          </fieldset>
+          <div class="field">
+            <label for="f-mensagem">Mensagem <span class="optional">(opcional)</span></label>
+            <textarea id="f-mensagem" name="mensagem" rows="3"></textarea>
+          </div>
+          <button class="btn" type="submit">Simular pedido <svg aria-hidden="true"><use href="#i-seta"/></svg></button>
+        </form>
+      </div>
+
+      <div class="booking-success" hidden>
+        <p class="eyebrow">Simulação concluída</p>
+        <h2 class="booking-title" tabindex="-1">Obrigado, <span data-success-name></span>.</h2>
+        <p>Os dados foram validados apenas nesta página. Como se trata de uma demonstração, <strong>o pedido não foi enviado</strong> e não existe qualquer marcação para <span data-success-service></span>.</p>
+        <button class="btn" type="button" data-close-booking>Fechar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
