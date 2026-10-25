@@ -6,7 +6,9 @@ import { integrationStatus } from "@/lib/providers/registry";
 import { getSettings } from "@/lib/settings";
 import { Flash } from "@/components/flash";
 import { Badge, Section } from "@/components/ui";
-import { addCompanyAction, importCsvAction, saveRubricAction, saveSettingsAction } from "../../actions";
+import { addCompanyAction, importCsvAction, saveRubricAction, saveSettingsAction, testIntegrationsAction } from "../../actions";
+import type { CheckResult } from "@/lib/providers/check";
+import { formatDateTimePT as fmt } from "@/lib/domain/time";
 
 function Num({ name, label, value, max = 40 }: { name: string; label: string; value: number; max?: number }) {
   return <div><label className="label" htmlFor={name}>{label}</label><input id={name} name={name} type="number" min={0} max={max} defaultValue={value} className="input" /></div>;
@@ -15,10 +17,11 @@ function Num({ name, label, value, max = 40 }: { name: string; label: string; va
 export default async function Settings({ searchParams }: { searchParams: Promise<{ ok?: string; erro?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
-  const { s, usage, rubrics } = await withUser(user.id, async (db) => ({
+  const { s, usage, rubrics, checks } = await withUser(user.id, async (db) => ({
     s: await getSettings(db),
     usage: (await db.query("select provider, requests, last_remaining from api_usage where day = (now() at time zone 'Europe/Lisbon')::date")).rows,
     rubrics: (await db.query("select version, notes, created_at from scoring_rubrics order by version desc limit 10")).rows,
+    checks: (await db.query("select last_checks from settings where owner_id = auth.uid()")).rows[0]?.last_checks as CheckResult[] | null,
   }));
   const r = s.rubric;
   return (
@@ -33,6 +36,20 @@ export default async function Settings({ searchParams }: { searchParams: Promise
             <tr key={i.id}><td>{i.label}</td><td>{i.configured ? <Badge t="ok">configurado</Badge> : <Badge t="warn">não configurado</Badge>}</td><td>{i.purpose}</td><td><code className="text-xs">{i.envVar}</code></td><td className="text-xs">{i.notes}</td></tr>
           ))}
         </tbody></table>
+      </Section>
+
+      <Section title="Diagnóstico das integrações (chamadas reais)" id="diagnostico" actions={!user.demo && <form action={testIntegrationsAction}><button className="btn">Testar agora</button></form>}>
+        <p className="muted mb-2">Faz uma chamada mínima a cada serviço: Google Places com field mask «places.id» (SKU «IDs Only», sem custo segundo a tabela da Google), 1 pedido ao Brave (conta na quota),
+          estado do Overpass, e consulta do modelo na Anthropic (sem tokens). {user.demo && "Indisponível no modo de demonstração."}</p>
+        {!checks ? <p className="text-sm">Ainda não foi feito nenhum diagnóstico.</p> : (
+          <table className="table"><thead><tr><th>Serviço</th><th>Resultado</th><th>Detalhe</th><th>Quando</th></tr></thead><tbody>
+            {checks.map((c) => (
+              <tr key={c.id}><td>{c.label}{c.required && <span className="text-xs text-muted"> (obrigatório)</span>}</td>
+                <td><Badge t={c.status === "ok" ? "ok" : c.status === "failed" ? "bad" : "warn"}>{c.status === "ok" ? "a funcionar" : c.status === "failed" ? "falhou" : "não configurado"}</Badge></td>
+                <td className="text-xs">{c.detail}</td><td className="text-xs">{fmt(c.checkedAt)}</td></tr>
+            ))}
+          </tbody></table>
+        )}
       </Section>
 
       <Section title="Limites, abordagem e retenção" id="limites">

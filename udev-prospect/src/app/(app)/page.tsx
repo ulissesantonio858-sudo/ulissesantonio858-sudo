@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { WorkerStatus } from "@/components/worker-status";
 import { requireUser } from "@/lib/auth";
 import { withUser } from "@/lib/db";
 import { dashboardMetrics, tasksForDay } from "@/lib/crm";
 import { formatDatePT, formatDateTimePT, todayLisbon } from "@/lib/domain/time";
 import { integrationStatus } from "@/lib/providers/registry";
-import { Empty, Notice, Section, StatusBadge } from "@/components/ui";
+import { Empty, Notice, OutcomeBadge, Section, StatusBadge } from "@/components/ui";
 import { toggleTaskAction } from "../actions";
 
 function Rate({ label, num, den }: { label: string; num: number; den: number }) {
@@ -23,7 +24,7 @@ export default async function Dashboard() {
   const { m, tasks, searches } = await withUser(user.id, async (db) => ({
     m: await dashboardMetrics(db),
     tasks: await tasksForDay(db, today),
-    searches: (await db.query("select id, params, status, stats, created_at from searches order by created_at desc limit 5")).rows,
+    searches: (await db.query("select id, params, status, outcome, stats, created_at from searches order by created_at desc limit 5")).rows,
   }));
   const missing = integrationStatus().filter((i) => !i.configured && ["google_places", "brave"].includes(i.id));
   const r = m.reached;
@@ -37,6 +38,7 @@ export default async function Dashboard() {
         <Link href="/pesquisas/nova" className="btn no-underline">Nova pesquisa</Link>
       </div>
 
+      <WorkerStatus userId={user.id} />
       {missing.length > 0 && (
         <Notice>
           Integrações por configurar: {missing.map((i) => i.label).join(", ")}. Sem elas a pesquisa usa apenas as fontes disponíveis e os estados ficam
@@ -94,7 +96,7 @@ export default async function Dashboard() {
           <table className="table"><thead><tr><th>Data</th><th>Localidade</th><th>Estado</th><th>Candidatos</th></tr></thead><tbody>
             {searches.map((s) => (
               <tr key={s.id}><td><Link href={`/pesquisas/${s.id}`}>{formatDateTimePT(s.created_at)}</Link></td><td>{s.params.locality} · {s.params.radiusKm} km</td>
-                <td><StatusBadge s={s.status} /></td><td>{s.stats?.candidates ?? 0}</td></tr>
+                <td><StatusBadge s={s.status} /> <OutcomeBadge o={s.outcome} /></td><td>{s.stats?.candidates ?? 0}</td></tr>
             ))}
           </tbody></table>
         )}

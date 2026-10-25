@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireUser, supabaseConfigured, supabaseServer } from "@/lib/auth";
+import { cookies } from "next/headers";
+import { authMode, demoEnabled, localLoginConfigured, requireUser, supabaseConfigured, supabaseServer } from "@/lib/auth";
+import { ensureDemoData } from "@/lib/demo";
+import { credentialsMatch, DEMO_USER_ID, localUserId, SESSION_COOKIE, sessionSecret, signSession } from "@/lib/session";
 import { withUser } from "@/lib/db";
 import { addOverride, generateDrafts, importCsv, logContact, resolveConflict, saveDraft, saveQualityReview, setStage, STAGES, type Stage, rescore } from "@/lib/crm";
 import { presetByKey } from "@/lib/domain/geo";
@@ -14,11 +17,17 @@ import { enqueueJob } from "@/lib/pipeline/jobs";
 import { insertEvidences, logActivity, upsertCompany, upsertContacts } from "@/lib/pipeline/repo";
 import { normalizeEmail, normalizePhonePT } from "@/lib/domain/normalize";
 import { geocodeWithPlaces } from "@/lib/providers/google-places";
+import { checkIntegrations } from "@/lib/providers/check";
 import { dbUsageGuard, getSettings } from "@/lib/settings";
 import type { ContactDraft, EvidenceDraft } from "@/lib/analysis/types";
 
 const uuid = z.string().uuid();
 const back = (path: string, kind: "erro" | "ok", msg: string) => `${path}${path.includes("?") ? "&" : "?"}${kind}=${encodeURIComponent(msg)}`;
+
+const DEMO_MSG = "Modo de demonstração: pesquisas, verificações e importações reais estão desativadas. Entre com a sua conta para trabalhar com dados reais.";
+function noDemo(user: { demo: boolean }, path: string) {
+  if (user.demo) redirect(back(path, "erro", DEMO_MSG));
+}
 
 async function run(path: string, fn: () => Promise<string | void>): Promise<never> {
   let target: string;
@@ -36,13 +45,37 @@ async function run(path: string, fn: () => Promise<string | void>): Promise<neve
 // Autenticação
 // ---------------------------------------------------------------------------
 export async function signIn(formData: FormData) {
-  if (!supabaseConfigured()) redirect("/login?erro=" + encodeURIComponent("Supabase não configurado"));
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  if (authMode() === "local") {
+    if (!localLoginConfigured()) redirect("/login?erro=" + encodeURIComponent("Defina APP_LOGIN_EMAIL e APP_PASSWORD (mín. 10 caracteres) no ficheiro .env e reinicie."));
+    if (!credentialsMatch(email, password, process.env.APP_LOGIN_EMAIL!, process.env.APP_PASSWORD!)) {
+      await new Promise((r) => setTimeout(r, 800)); // abranda tentativas repetidas
+      redirect("/login?erro=" + encodeURIComponent("Email ou palavra-passe incorretos."));
+    }
+    await setSession({ sub: localUserId(process.env.APP_LOGIN_EMAIL!), email: process.env.APP_LOGIN_EMAIL!.trim(), demo: false });
+    redirect("/");
+  }
+  if (!supabaseConfigured()) redirect("/login?erro=" + encodeURIComponent("Supabase não configurado"));
   const sb = await supabaseServer();
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) redirect("/login?erro=" + encodeURIComponent("Credenciais inválidas ou utilizador sem acesso."));
   redirect("/");
+}
+
+export async function enterDemo() {
+  if (!demoEnabled()) redirect("/login?erro=" + encodeURIComponent("Modo de demonstração desativado (DEMO_ENABLED=false)."));
+  await ensureDemoData();
+  await setSession({ sub: DEMO_USER_ID, email: "demonstração", demo: true });
+  redirect("/");
+}
+
+async function setSession(p: { sub: string; email: string; demo: boolean }) {
+  const store = await cookies();
+  const maxAge = p.demo ? 4 * 3600 : 30 * 86400;
+  store.set(SESSION_COOKIE, signSession({ ...p, exp: Date.now() + maxAge * 1000 }, await sessionSecret()), {
+    httpOnly: true, sameSite: "lax", path: "/", maxAge, secure: process.env.COOKIE_SECURE === "true",
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -50,6 +83,7 @@ export async function signIn(formData: FormData) {
 // ---------------------------------------------------------------------------
 export async function createSearchAction(formData: FormData) {
   const user = await requireUser();
+  noDemo(user, "/pesquisas/nova");
   let newId = "";
   try {
     const presetKey = String(formData.get("locationKey") ?? "");
@@ -106,6 +140,7 @@ export async function cancelSearch(formData: FormData) {
 
 export async function resumeSearch(formData: FormData) {
   const user = await requireUser();
+  noDemo(user, "/pesquisas");
   const id = uuid.parse(formData.get("id"));
   return run(`/pesquisas/${id}`, async () => {
     await withUser(user.id, async (db) => {
@@ -123,6 +158,7 @@ export async function resumeSearch(formData: FormData) {
 // ---------------------------------------------------------------------------
 export async function reverifyAction(formData: FormData) {
   const user = await requireUser();
+  noDemo(user, "/leads");
   const id = uuid.parse(formData.get("id"));
   return run(`/leads/${id}`, async () => {
     await withUser(user.id, async (db) => {
@@ -299,6 +335,7 @@ export async function addCompanyAction(formData: FormData) {
 // ---------------------------------------------------------------------------
 export async function importCsvAction(formData: FormData) {
   const user = await requireUser();
+  noDemo(user, "/configuracoes");
   return run("/configuracoes", async () => {
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) throw new Error("Escolha um ficheiro CSV.");
@@ -342,5 +379,17 @@ export async function saveRubricAction(formData: FormData) {
       return v;
     });
     return `Rubrica v${version} ativa. As pontuações existentes mantêm a versão com que foram calculadas até serem reverificadas.`;
+  });
+}
+
+export async function testIntegrationsAction() {
+  const user = await requireUser();
+  noDemo(user, "/configuracoes");
+  return run("/configuracoes", async () => {
+    const settings = await withUser(user.id, (db) => getSettings(db));
+    const results = await checkIntegrations(dbUsageGuard(user.id, settings.limits));
+    await withUser(user.id, (db) => db.query("update settings set last_checks = $1 where owner_id = auth.uid()", [JSON.stringify(results)]));
+    const bad = results.filter((r) => r.status !== "ok");
+    return bad.length ? `Diagnóstico concluído: ${results.length - bad.length} OK, ${bad.length} com problemas ou por configurar (ver tabela).` : "Diagnóstico concluído: todas as integrações responderam.";
   });
 }

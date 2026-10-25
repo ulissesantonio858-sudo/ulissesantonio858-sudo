@@ -5,9 +5,14 @@ const items = [
   ["/pipeline", "Pipeline"], ["/tarefas", "Tarefas"], ["/configuracoes", "Configurações"],
 ] as const;
 
-export function Nav({ email, devBypass }: { email: string | null; devBypass: boolean }) {
+export function Nav({ email, demo }: { email: string | null; demo: boolean }) {
   return (
     <header className="border-b border-line bg-panel">
+      {demo && (
+        <div role="status" className="bg-warn px-4 py-2 text-center text-sm font-semibold text-black">
+          DEMONSTRAÇÃO — todos os dados são fictícios e estão separados dos seus leads reais. Pesquisas reais desativadas.
+        </div>
+      )}
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Link href="/" className="text-lg font-extrabold tracking-tight text-ink no-underline">
           <span className="text-accent-soft">UDEV</span> Prospect
@@ -18,9 +23,8 @@ export function Nav({ email, devBypass }: { email: string | null; devBypass: boo
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3 text-xs text-muted">
-          {devBypass && <span className="rounded border border-warn/50 px-2 py-0.5 text-warn">modo local de desenvolvimento</span>}
           <span>{email}</span>
-          {!devBypass && <form action="/auth/signout" method="post"><button className="underline">Sair</button></form>}
+          <form action="/auth/signout" method="post"><button className="underline">Sair</button></form>
         </div>
       </div>
     </header>

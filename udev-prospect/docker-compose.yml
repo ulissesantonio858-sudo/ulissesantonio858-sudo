@@ -1,0 +1,78 @@
+# UDEV Prospect — arranque local: Postgres + migrações + aplicação + worker.
+#   docker compose up -d --build
+# A interface fica em http://localhost:3000 (apenas neste computador: a porta está ligada a 127.0.0.1).
+name: udev-prospect
+
+x-db-url: &db_url "postgres://udev:${POSTGRES_PASSWORD:-udev-local}@db:5432/udev"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: udev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-udev-local}
+      POSTGRES_DB: udev
+    volumes:
+      - udev-db:/var/lib/postgresql/data   # dados persistentes (leads, notas, pesquisas)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U udev -d udev"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+    # Sem "ports": a base de dados não fica exposta fora da rede interna do Docker.
+
+  migrate:
+    build: { context: ., target: app }
+    image: udev-prospect-app
+    command: ["npx", "tsx", "scripts/migrate.ts", "--local-shim"]
+    environment:
+      DATABASE_URL: *db_url
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+
+  app:
+    image: udev-prospect-app
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      DATABASE_URL: *db_url
+      AUTH_MODE: ${AUTH_MODE:-local}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  worker:
+    build: { context: ., target: worker }
+    image: udev-prospect-worker
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      DATABASE_URL: *db_url
+      AUTH_MODE: ${AUTH_MODE:-local}
+      REPORTS_DIR: /app/relatorios
+    volumes:
+      - ./relatorios:/app/relatorios     # relatórios de validação ficam visíveis no seu computador
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "scripts/worker-healthcheck.mjs"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  udev-db:

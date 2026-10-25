@@ -60,10 +60,11 @@ export default async function NewSearch({ searchParams }: { searchParams: Promis
         </fieldset>
         <fieldset className="space-y-3">
           <legend className="h2 mb-2">Fontes e limites</legend>
-          <label className="flex gap-2 text-sm"><input type="checkbox" name="providers" value="google_places" defaultChecked={st.google_places.configured} disabled={!st.google_places.configured} />
-            Google Places {st.google_places.configured ? "" : "(não configurado)"}</label>
-          <label className="flex gap-2 text-sm"><input type="checkbox" name="providers" value="osm" defaultChecked={st.osm.configured} disabled={!st.osm.configured} />
-            OpenStreetMap (sem chave; cobertura variável)</label>
+          <label className="flex gap-2 text-sm"><input type="checkbox" name="providers" value="google_places" defaultChecked />
+            Google Places {st.google_places.configured ? "" : <span className="text-warn">(não configurado — ficará registado como tal)</span>}</label>
+          <label className="flex gap-2 text-sm"><input type="checkbox" name="providers" value="osm" defaultChecked={st.osm.configured} />
+            OpenStreetMap (sem chave; cobertura variável){st.osm.configured ? "" : <span className="text-warn"> (desligado)</span>}</label>
+          <p className="muted">Antes da primeira pesquisa use «Configurações → Testar agora» para confirmar que as fontes respondem.</p>
           <div><label htmlFor="maxCandidates" className="label">Máximo de candidatos a analisar</label><input id="maxCandidates" name="maxCandidates" type="number" min={1} max={200} defaultValue={30} className="input" /></div>
           <p className="muted">Cada candidato pode consumir pedidos de pesquisa web e análise de site. Os limites diários estão nas configurações.</p>
         </fieldset>

@@ -29,6 +29,14 @@ export const STATUS_LABEL: Record<string, string> = {
   processing: "a processar", done: "concluído", failed: "falhou", skipped: "ignorado", duplicate: "duplicado",
   queued: "em fila", running: "em curso", cancel_requested: "a cancelar", cancelled: "cancelada", completed: "concluída",
 };
+export const OUTCOME_LABEL: Record<string, string> = {
+  not_configured: "não configurada", failed: "falhou", partial: "parcial", no_results: "nenhuma empresa encontrada", ok: "fontes OK",
+};
+export function OutcomeBadge({ o }: { o: string | null | undefined }) {
+  if (!o) return null;
+  const t = o === "ok" ? "ok" : o === "no_results" ? "neutral" : o === "partial" ? "warn" : "bad";
+  return <Badge t={t} title="Resultado da pesquisa">{OUTCOME_LABEL[o] ?? o}</Badge>;
+}
 export const label = (s: string | null | undefined) => (s ? STATUS_LABEL[s] ?? s : "—");
 
 export function StatusBadge({ s }: { s: string | null | undefined }) {

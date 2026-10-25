@@ -13,7 +13,31 @@ import { verifyCompany } from "./verify";
 
 export interface RunOptions { providers: Providers; site?: SiteDeps; maxCandidateAttempts?: number }
 
-type SourceLog = { provider: string; query: string; at: string; results: number; error?: string };
+export type SourceStatus = "ok" | "not_configured" | "failed";
+export type SourceLog = { provider: string; kind?: "discovery" | "web_search"; query: string; at: string; results: number; status: SourceStatus; error?: string };
+export type SearchOutcome = "not_configured" | "failed" | "partial" | "no_results" | "ok";
+
+/**
+ * Resultado de uma pesquisa, separado do estado de execução. «Nenhuma empresa encontrada» só quando todas as fontes
+ * pedidas responderam com sucesso e não devolveram candidatos; falhas e falta de configuração nunca passam por «sem resultados».
+ */
+export function computeOutcome(sources: SourceLog[], candidates: number, failedCandidates: number, warnings: number): SearchOutcome {
+  const discovery = sources.filter((x) => (x.kind ?? "discovery") === "discovery");
+  const ok = discovery.filter((x) => x.status === "ok").length;
+  const failed = discovery.filter((x) => x.status === "failed").length;
+  if (ok === 0) return failed > 0 ? "failed" : "not_configured";
+  const incomplete = discovery.length > ok || sources.some((x) => x.kind === "web_search" && x.status !== "ok") || failedCandidates > 0 || warnings > 0;
+  if (incomplete) return "partial";
+  return candidates === 0 ? "no_results" : "ok";
+}
+
+export const OUTCOME_MESSAGE: Record<SearchOutcome, string> = {
+  not_configured: "Não configurada: nenhuma das fontes pedidas tem credenciais/ativação. Nada foi pesquisado.",
+  failed: "Falhou: nenhuma fonte respondeu (rede, chave inválida, quota ou erro do fornecedor). Ver «Fontes consultadas».",
+  partial: "Parcial: parte das fontes ou verificações não funcionou. Os resultados podem estar incompletos.",
+  no_results: "Nenhuma empresa encontrada: as fontes responderam com sucesso e não devolveram candidatos.",
+  ok: "Concluída com todas as fontes a responder.",
+};
 
 async function searchStatus(userId: string, searchId: string): Promise<string> {
   return withUser(userId, async (db) => (await db.query("select status from searches where id = $1", [searchId])).rows[0]?.status);
@@ -39,6 +63,7 @@ export async function runSearch(userId: string, searchId: string, opts: RunOptio
   if (search.stage === "discovery") {
     const sources: SourceLog[] = [];
     let total = 0;
+    const brokenProviders = new Set<string>(); // após uma falha, a fonte não é repetida para os restantes nichos
     outer: for (const nicheKey of params.niches) {
       const niche = nicheByKey(nicheKey)!;
       for (const provider of opts.providers.discovery.filter((p) => params.providers.includes(p.id))) {
@@ -47,7 +72,12 @@ export async function runSearch(userId: string, searchId: string, opts: RunOptio
           if (total >= params.maxCandidates) break outer;
           if ((await searchStatus(userId, searchId)) === "cancel_requested") break outer;
           const at = new Date().toISOString();
-          if (!provider.configured()) { sources.push({ provider: provider.id, query, at, results: 0, error: "não configurado" }); continue; }
+          if (brokenProviders.has(provider.id)) continue;
+          if (!provider.configured()) {
+            sources.push({ provider: provider.id, kind: "discovery", query, at, results: 0, status: "not_configured", error: "não configurado" });
+            brokenProviders.add(provider.id);
+            continue;
+          }
           try {
             const found = await provider.search({ query, nicheKey, center: params.center, radiusKm: params.radiusKm, maxResults: params.maxCandidates - total }, guard);
             const inserted = await withUser(userId, async (db) => {
@@ -61,19 +91,25 @@ export async function runSearch(userId: string, searchId: string, opts: RunOptio
               return n;
             });
             total += inserted;
-            sources.push({ provider: provider.id, query, at, results: found.length });
+            sources.push({ provider: provider.id, kind: "discovery", query, at, results: found.length, status: "ok" });
           } catch (e) {
             const cause = (e as { cause?: { code?: string; message?: string } }).cause;
             const detail = cause?.code ?? cause?.message;
-            sources.push({ provider: provider.id, query, at, results: 0, error: `${(e as Error).message}${detail ? ` (${detail})` : ""}`.slice(0, 300) });
-            if (e instanceof QuotaExceededError) break;
+            sources.push({ provider: provider.id, kind: "discovery", query, at, results: 0, status: "failed", error: `${(e as Error).message}${detail ? ` (${detail})` : ""}`.slice(0, 300) });
+            brokenProviders.add(provider.id);
+            if (e instanceof QuotaExceededError) continue;
           }
         }
       }
     }
-    const allFailed = sources.length > 0 && sources.every((x) => x.error);
-    await withUser(userId, (db) => db.query("update searches set sources_consulted = sources_consulted || $2::jsonb, stage = 'processing', error = $3 where id = $1",
-      [searchId, JSON.stringify(sources), allFailed ? "Nenhuma fonte respondeu (ver «Fontes consultadas»). Não há candidatos — nada foi inventado." : null]));
+    // Fornecedores pedidos que não existem como adaptador também contam como não configurados
+    for (const id of params.providers) if (!sources.some((x) => x.provider === id) && !opts.providers.discovery.some((p) => p.id === id))
+      sources.push({ provider: id, kind: "discovery", query: "—", at: new Date().toISOString(), results: 0, status: "not_configured", error: "adaptador indisponível" });
+    const ws = opts.providers.webSearch;
+    if (!ws?.configured()) sources.push({ provider: ws?.id ?? "pesquisa_web", kind: "web_search", query: "pesquisa do site pelo nome + localidade", at: new Date().toISOString(), results: 0,
+      status: "not_configured", error: "não configurado: empresas sem site na listagem ficam «não verificado»" });
+    await withUser(userId, (db) => db.query("update searches set sources_consulted = sources_consulted || $2::jsonb, stage = 'processing' where id = $1",
+      [searchId, JSON.stringify(sources)]));
   }
 
   // Fase 2 — verificação candidato a candidato
@@ -91,8 +127,12 @@ export async function runSearch(userId: string, searchId: string, opts: RunOptio
     if (!cand) break;
     try {
       const outcome = await withUser(userId, (db) => processCandidate(db, searchId, cand.payload as DiscoveryCandidate & { nicheKey: string }, params, settings, opts, guard));
-      await withUser(userId, (db) => db.query("update search_candidates set status = $2, outcome = $3, company_id = $4, error = null, updated_at = now() where id = $1",
-        [cand.id, outcome.status, outcome.outcome, outcome.companyId]));
+      await withUser(userId, async (db) => {
+        await db.query("update search_candidates set status = $2, outcome = $3, company_id = $4, error = null, updated_at = now() where id = $1",
+          [cand.id, outcome.status, outcome.outcome, outcome.companyId]);
+        if (outcome.notes?.length)
+          await db.query("update searches set warnings = warnings || $2::jsonb where id = $1", [searchId, JSON.stringify(outcome.notes.map((n) => ({ candidate: cand.name, note: n })))]);
+      });
     } catch (e) {
       const msg = (e as Error).message.slice(0, 500);
       const max = opts.maxCandidateAttempts ?? 2;
@@ -117,10 +157,16 @@ export async function refreshStats(userId: string, searchId: string) {
        select jsonb_object_agg(q, n) from (select c.qualification_status q, count(distinct c.id) n from search_candidates sc join companies c on c.id = sc.company_id
          where sc.search_id = s.id and sc.status = 'done' group by c.qualification_status) y), '{}'::jsonb))
      where s.id = $1`, [searchId]));
+  await withUser(userId, async (db) => {
+    const r = (await db.query("select sources_consulted, warnings, stats from searches where id = $1", [searchId])).rows[0];
+    const by = r.stats?.by_status ?? {};
+    const outcome = computeOutcome(r.sources_consulted, r.stats?.candidates ?? 0, by.failed ?? 0, (r.warnings ?? []).length);
+    await db.query("update searches set outcome = $2, error = $3 where id = $1", [searchId, outcome, outcome === "ok" || outcome === "no_results" ? null : OUTCOME_MESSAGE[outcome]]);
+  });
 }
 
 async function processCandidate(db: Db, searchId: string, c: DiscoveryCandidate & { nicheKey: string }, params: SearchParams,
-  settings: Awaited<ReturnType<typeof getSettings>>, opts: RunOptions, guard: ReturnType<typeof dbUsageGuard>) {
+  settings: Awaited<ReturnType<typeof getSettings>>, opts: RunOptions, guard: ReturnType<typeof dbUsageGuard>): Promise<{ status: string; outcome: string; companyId: string | null; notes?: string[] }> {
   // Filtros baratos antes da verificação completa (explicados no estado do candidato)
   const addr = stripAccents(`${c.address ?? ""} ${c.locality ?? ""}`.toLowerCase());
   if (params.excludeTerms.some((t) => addr.includes(stripAccents(t.toLowerCase()))))
@@ -187,5 +233,5 @@ async function processCandidate(db: Db, searchId: string, c: DiscoveryCandidate 
   }, { webSearch: opts.providers.webSearch, ai: opts.providers.ai, guard, site: opts.site });
   if (decision.kind === "match") await logActivity(db, company.id, "system", `Reverificada na pesquisa ${searchId.slice(0, 8)} (${decision.reason}).`);
   const q = result.company.qualification_status;
-  return { status: "done", outcome: `${q === "qualified" ? "qualificada" : q === "review" ? "para revisão" : "descartada"}: ${result.score.total} pts, confiança ${({ alto: "alta", medio: "média", baixo: "baixa" } as Record<string, string>)[result.score.confidence]}${result.notes.length ? " — " + result.notes.join("; ") : ""}`, companyId: company.id };
+  return { status: "done", outcome: `${q === "qualified" ? "qualificada" : q === "review" ? "para revisão" : "descartada"}: ${result.score.total} pts, confiança ${({ alto: "alta", medio: "média", baixo: "baixa" } as Record<string, string>)[result.score.confidence]}${result.notes.length ? " — " + result.notes.join("; ") : ""}`, companyId: company.id, notes: result.notes };
 }

@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <>
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-accent-strong focus:px-3 focus:py-2 focus:text-white">Saltar para o conteúdo</a>
-      <Nav email={user.email} devBypass={user.devBypass} />
+      <Nav email={user.email} demo={user.demo} />
       <main id="conteudo" className="mx-auto max-w-7xl space-y-6 px-4 py-6">{children}</main>
     </>
   );

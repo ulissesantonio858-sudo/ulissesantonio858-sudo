@@ -12,6 +12,8 @@ import { runSearch } from "@/lib/pipeline/search-job";
 import { enqueueJob, processOneJob } from "@/lib/pipeline/jobs";
 import { exportCsv, generateDrafts, importCsv, logContact, setStage, addOverride, dashboardMetrics, saveQualityReview, resolveConflict } from "@/lib/crm";
 import { DoNotContactError } from "@/lib/domain/outreach";
+import { ensureDemoData } from "@/lib/demo";
+import { DEMO_USER_ID } from "@/lib/session";
 import { LOCATION_PRESETS } from "@/lib/domain/geo";
 import type { SearchParams } from "@/lib/domain/search-params";
 import type { Providers } from "@/lib/providers/registry";
@@ -134,7 +136,8 @@ d("integração com base de dados", () => {
       expect(co.FX_BLOCK.qualification_status).toBe("review");
       expect(co.FX_A_VRSA).toBeUndefined();
 
-      const s = (await db.query("select stats, sources_consulted from searches where id = $1", [sid])).rows[0];
+      const s = (await db.query("select stats, sources_consulted, outcome from searches where id = $1", [sid])).rows[0];
+      expect(s.outcome).toBe("ok");
       expect(s.stats.candidates).toBe(7);
       expect(s.sources_consulted.length).toBeGreaterThan(0);
     });
@@ -143,6 +146,8 @@ d("integração com base de dados", () => {
     const sid2 = await createSearch(userA, params());
     await runSearch(userA, sid2, { providers: { discovery: [fixtureDiscovery("google_places", [cand({ externalId: "FX_NOSITE2", name: "Clínica Dentária Outra Fixture", types: ["dental_clinic"] })])], webSearch: null, ai: null }, site: { fetchOptions: srv.fetchOptions, mobile: false } });
     await withUser(userA, async (db) => {
+      // Pesquisa web não configurada → a pesquisa fica «parcial», nunca «sem resultados»
+      expect((await db.query("select outcome from searches where id = $1", [sid2])).rows[0].outcome).toBe("partial");
       const c = (await db.query("select website_status, qualification_status from companies where google_place_id = 'FX_NOSITE2'")).rows[0];
       expect(c).toEqual({ website_status: "not_verified", qualification_status: "review" });
     });
@@ -191,6 +196,9 @@ d("integração com base de dados", () => {
     const s = await withUser(userB, async (db) => (await db.query("select status, sources_consulted from searches where id = $1", [sid])).rows[0]);
     expect(s.status).toBe("completed");
     expect(s.sources_consulted[0].error).toMatch(/erro do fornecedor/);
+    expect(s.sources_consulted[0].status).toBe("failed");
+    const o = await withUser(userB, async (db) => (await db.query("select outcome from searches where id = $1", [sid])).rows[0].outcome);
+    expect(o).toBe("failed");
   });
 
   it("CSV: reimportar não duplica empresas nem notas e não apaga notas existentes; filiais preservadas", async () => {
@@ -282,5 +290,18 @@ Ginásio Rede Fixture,Chaves,5400-200,276000200,,https://ginasio-rede.fixture.in
       expect(row.address).toBe("Rua B");
       expect(row.locked_fields).toContain("address");
     });
+  });
+  it("demonstração: dados fictícios só no utilizador demo, nunca nos leads/indicadores reais", async () => {
+    const before = await withUser(userA, async (db) => ({ m: await dashboardMetrics(db), n: (await db.query("select count(*)::int n from companies")).rows[0].n }));
+    await ensureDemoData();
+    await ensureDemoData(); // idempotente
+    const demo = await withUser(DEMO_USER_ID, async (db) => (await db.query("select name, qualification_status from companies")).rows);
+    expect(demo).toHaveLength(3);
+    expect(demo.every((c) => c.name.includes("(demonstração)"))).toBe(true);
+    const after = await withUser(userA, async (db) => ({ m: await dashboardMetrics(db), n: (await db.query("select count(*)::int n from companies")).rows[0].n,
+      demo: (await db.query("select count(*)::int n from companies where name like '%(demonstração)%'")).rows[0].n }));
+    expect(after.n).toBe(before.n);
+    expect(after.demo).toBe(0);
+    expect(after.m.analisados).toBe(before.m.analisados);
   });
 });

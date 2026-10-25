@@ -1,93 +1,80 @@
 # UDEV Prospect
 
-Aplicação privada para encontrar, verificar, qualificar e acompanhar potenciais clientes de serviços de desenvolvimento web
-(mercado inicial: **Vila Real, distrito de Vila Real** — não Vila Real de Santo António).
+Aplicação privada para encontrar, verificar, qualificar e acompanhar potenciais clientes de serviços de desenvolvimento web.
+O mercado inicial é **Vila Real, distrito de Vila Real** (não Vila Real de Santo António).
 
-O sistema só usa sinais públicos verificáveis. Cada facto fica ligado a uma evidência (valor, URL, data, método, estado).
+O sistema só usa sinais públicos verificáveis, e cada facto fica ligado a uma evidência (valor, URL, data, método, estado).
 Interesse de compra, orçamento ou falta de tempo **não são inferidos**: confirmam-se em conversa.
+
+## Começar (Windows/macOS/Linux com Docker)
+
+**→ Passo a passo para Windows: [INSTALAR-WINDOWS.md](INSTALAR-WINDOWS.md)**
+
+```bash
+cp .env.example .env          # definir APP_LOGIN_EMAIL e APP_PASSWORD (+ chaves quando as tiver)
+docker compose up -d --build
+docker compose ps -a          # db, app e worker "healthy"; migrate "Exited (0)"
+```
+
+Abra http://localhost:3000.
+
+| Documento | Conteúdo |
+|---|---|
+| [INSTALAR-WINDOWS.md](INSTALAR-WINDOWS.md) | Programas a instalar, comandos (um por linha), uso diário, cópias de segurança, problemas comuns |
+| [INTEGRACOES.md](INTEGRACOES.md) | Integrações implementadas, obrigatórias vs. opcionais, onde obter chaves, variáveis, verificação, custos e limites |
+| [VALIDACAO.md](VALIDACAO.md) | Validação real com 5 candidatos em Vila Real, o que foi testado e o que está pendente |
+
+### Serviços do `docker-compose.yml`
+
+| Serviço | Função | Saúde |
+|---|---|---|
+| `db` | Postgres 16; dados no volume `udev-db` (persistente) | `pg_isready` |
+| `migrate` | Aplica `supabase/migrations/*.sql` e termina | tem de terminar com código 0 |
+| `app` | Interface Next.js em `127.0.0.1:3000` | `GET /api/health` |
+| `worker` | Fila de pesquisas/verificações; inclui Chromium para a análise móvel | ficheiro de sinal de vida com menos de 60 s |
+
+Serviços **externos** (configuráveis no `.env`, ver INTEGRACOES.md): Google Places API (New), OpenStreetMap Overpass, Brave Search API
+e Anthropic. Sem eles, o cadastro manual e a importação CSV continuam a funcionar.
+
+### Demonstração vs. utilização real
+
+O botão «Ver demonstração» no login entra num utilizador separado com 3 leads **fictícios** (domínios `.invalid`). As políticas RLS da base de dados
+isolam-no: esses dados nunca aparecem nos seus leads, pesquisas ou indicadores. No modo de demonstração as pesquisas, as verificações e a
+importação ficam desativadas. Desligue-o com `DEMO_ENABLED=false`. Os testes automáticos usam fixtures próprias (`tests/fixtures/`), só dentro dos testes.
 
 ## Arquitetura
 
 ```
-Next.js 16 (App Router, server actions)  ──►  Postgres / Supabase (RLS por utilizador)
+Next.js 16 (App Router, server actions)  ──►  Postgres (RLS por utilizador)
         │  cria pesquisa + trabalho na fila            ▲
         ▼                                              │ withUser(): role authenticated + auth.uid()
-  tabela jobs (persistente)  ◄── worker (npm run worker) ──► adaptadores:
-                                                         · Google Places API (New) — descoberta
-                                                         · OpenStreetMap/Overpass — descoberta sem chave
-                                                         · Brave Search API — site pelo nome + localidade
-                                                         · Anthropic (opcional) — sugestão de nicho com evidência citada
-                                                         · safe-fetch + cheerio — análise HTML (GET apenas)
-                                                         · Playwright/Chromium — ecrã móvel 390×844
+  tabela jobs (persistente)  ◄── worker ──► adaptadores:
+                                             · Google Places API (New) — descoberta
+                                             · OpenStreetMap/Overpass — descoberta sem chave
+                                             · Brave Search API — site pelo nome + localidade
+                                             · Anthropic (opcional) — sugestão de nicho com evidência citada
+                                             · safe-fetch + cheerio — análise HTML (só pedidos GET)
+                                             · Playwright/Chromium — ecrã móvel 390×844
 ```
 
-* `src/lib/domain/` — regras puras e testáveis: normalização, deduplicação, rubrica versionada, pontuação, confiança, abordagem.
-* `src/lib/net/safe-fetch.ts` — bloqueia IPs privados/localhost (também após DNS, contra *rebinding*), credenciais no URL, portas
-  não-web, redireções inseguras (HTTPS→HTTP, para IP privado), com limites de tempo, tamanho e redireções. Respeita `robots.txt`.
-* `src/lib/analysis/` — análise do site: página inicial, contactos, páginas de serviço, ligações de marcação, botões sem destino,
-  texto provisório, viewport, HTTPS e verificação móvel (menu, sobreposição de contactos, deslocamento horizontal).
-* `src/lib/pipeline/` — pesquisa em duas fases (descoberta → verificação candidato a candidato, cada um na sua transação),
-  cancelamento, retoma sem duplicar, *retries* limitados, limites diários por fornecedor e purga por prazo de retenção.
-* `src/lib/crm.ts` — pipeline, contactos registados, rascunhos, correções manuais com histórico, CSV, indicadores.
-* `supabase/migrations/0001_init.sql` — esquema completo com RLS e *triggers* de integridade entre tabelas.
+* Autenticação: **local** (`APP_LOGIN_EMAIL`/`APP_PASSWORD`, sessão assinada com HMAC, por defeito no Docker) ou **Supabase** (`AUTH_MODE=supabase`).
+* `src/lib/domain/` — regras puras: normalização, deduplicação, rubrica versionada, pontuação, confiança, abordagem.
+* `src/lib/net/safe-fetch.ts` — bloqueia IPs privados/localhost (também depois do DNS), credenciais no URL, portas não-web e redireções inseguras,
+  com limites de tempo, tamanho e número de redireções. Respeita o `robots.txt`.
+* `src/lib/pipeline/` — pesquisa em duas fases, cancelamento, retoma sem duplicar, limites diários e resultado (não configurada / falhou / parcial / sem resultados).
+* `src/lib/providers/check.ts` — diagnóstico com chamadas reais mínimas.
+* `scripts/validate-real.ts` — validação ponta a ponta com fontes reais.
 
-## Instalação
+## Sem Docker (desenvolvimento)
 
-Requisitos: Node 20+ (testado com 22), um projeto Supabase (ou Postgres 15+ local para desenvolvimento).
+Requisitos: Node 22 e Postgres 15 ou superior.
 
 ```bash
-cd udev-prospect
 npm install
-cp .env.example .env.local          # preencher (ver «Integrações»)
-npm run db:migrate                  # aplica supabase/migrations/*.sql à DATABASE_URL
+DATABASE_URL=postgres://user:pass@localhost:5432/udev npm run db:migrate:local
+npm run dev        # terminal 1 (lê .env.local / .env)
+npm run worker     # terminal 2
 ```
-
-No Supabase: em *Authentication* crie o seu utilizador (email + palavra-passe), **desative registos públicos**
-(*Allow new users to sign up* = off) e defina `ALLOWED_EMAILS` com o seu email.
-
-### Executar
-
-São dois processos — a interface e o worker (as pesquisas não avançam sem o worker):
-
-```bash
-npm run dev        # interface em http://localhost:3000
-npm run worker     # fila de trabalho (outro terminal)
-```
-
-Produção: `npm run build && npm start` + `npm run worker` num processo persistente (VM, contentor, serviço). Plataformas *serverless*
-servem a interface, mas o worker precisa de um processo de longa duração.
-
-### Desenvolvimento local sem Supabase
-
-```bash
-createdb udev_dev
-DATABASE_URL=postgres://user:pass@localhost:5432/udev_dev npm run db:migrate:local   # inclui shim auth.uid()/authenticated
-DEV_AUTH_USER_ID=<um-uuid> DATABASE_URL=... npm run dev
-```
-
-`DEV_AUTH_USER_ID` é ignorado com `NODE_ENV=production`.
-
-## Integrações
-
-| Integração | Variável | Sem ela |
-|---|---|---|
-| Postgres/Supabase | `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | A app não arranca (login indisponível). |
-| Google Places API (New) | `GOOGLE_PLACES_API_KEY` | Sem esta fonte; localidades fora das predefinições exigem coordenadas. |
-| OpenStreetMap (Overpass) | `OSM_ENABLED` (sem chave) | — (cobertura em Vila Real pode ser fraca). |
-| Brave Search API | `BRAVE_SEARCH_API_KEY` | Empresas sem site na listagem ficam **«não verificado»** (não «site não localizado»), sem pontos de oportunidade. |
-| Anthropic | `ANTHROPIC_API_KEY` | Nicho classificado só por regras (tipos de listagem / palavras no nome). |
-| Playwright | `npm i playwright && npx playwright install chromium` | Sem verificação em ecrã móvel (fica registado). |
-
-Sem credenciais, nada é simulado: a fonte aparece como «não configurado» ou com o erro real. Cadastro manual e importação CSV
-continuam disponíveis em **Configurações**.
-
-**Condições de utilização e armazenamento** (verificar sempre as versões atuais):
-* Google Places — o `place_id` pode ser guardado; latitude/longitude só até 30 dias; o restante conteúdo não tem exceção de cache.
-  A app guarda o conteúdo do Google como evidência **com prazo** (configurável, máx. 30 dias) e o worker limpa valores, coordenadas,
-  moradas e telefones cuja única fonte seja o Google. O **nome** da empresa mantém-se para identificar o registo — avalie se isso é
-  aceitável no seu contrato; confirmar o nome no site oficial reduz essa dependência. Mostre a atribuição «Google Maps».
-* Brave Search — os resultados não ficam em cache; só se guarda a consulta, a data, o número de resultados e os URLs que a app verificou.
-* OpenStreetMap — ODbL, atribuição «© contribuidores OpenStreetMap»; usar com moderação (limite diário por defeito: 30).
 
 ## Pesquisa e verificação (resumo das regras)
 
@@ -150,8 +137,7 @@ fila de trabalho; reimportação CSV; «não contactar»; contacto só com confi
 
 ## Limitações reais
 
-* **Integrações externas não testadas com chaves reais** neste desenvolvimento (Google Places, Brave e Anthropic foram implementados
-  segundo a documentação e testados com respostas simuladas). Faça uma pesquisa pequena (5 candidatos) e reveja as evidências antes de confiar.
+* **Integrações externas não testadas com chaves reais** durante o desenvolvimento (ver VALIDACAO.md): corra `validate:real` antes de confiar nos resultados.
 * Google Places Text Search devolve no máximo ~60 resultados por consulta; a cobertura do OSM é irregular.
 * A análise HTML não executa JavaScript (sites só-JS podem parecer sem contactos — o texto da oportunidade avisa). O Playwright
   cobre parte disso no ecrã móvel.

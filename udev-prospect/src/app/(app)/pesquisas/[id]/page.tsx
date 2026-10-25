@@ -6,8 +6,10 @@ import { formatDateTimePT } from "@/lib/domain/time";
 import { OPPORTUNITY_CATEGORIES, categoryOf, type OpportunityCategory } from "@/lib/domain/search-params";
 import { getSettings } from "@/lib/settings";
 import { AutoRefresh } from "@/components/client";
+import { WorkerStatus } from "@/components/worker-status";
 import { Flash } from "@/components/flash";
-import { Badge, ConfidenceBadge, Empty, PriorityBadge, Section, StatusBadge, label } from "@/components/ui";
+import { Badge, ConfidenceBadge, Empty, OutcomeBadge, PriorityBadge, Section, StatusBadge, label } from "@/components/ui";
+import { OUTCOME_MESSAGE, type SearchOutcome } from "@/lib/pipeline/search-job";
 import { cancelSearch, resumeSearch } from "../../../actions";
 
 const PRIO = { alta: 0, media: 1, baixa: 2 } as Record<string, number>;
@@ -57,12 +59,22 @@ export default async function SearchPage({ params, searchParams }: { params: Pro
         <div className="flex items-center gap-2">
           <AutoRefresh active={running} />
           <StatusBadge s={s.status} />
+          <OutcomeBadge o={s.outcome} />
           {["queued", "running"].includes(s.status) && <form action={cancelSearch}><input type="hidden" name="id" value={id} /><button className="btn-danger">Cancelar</button></form>}
           {["cancelled", "failed"].includes(s.status) && <form action={resumeSearch}><input type="hidden" name="id" value={id} /><button className="btn">Retomar</button></form>}
         </div>
       </div>
+      <WorkerStatus userId={user.id} />
       <Flash sp={sp} />
-      {s.error && <p role="alert" className="text-sm text-bad">Erro: {s.error}</p>}
+      {s.outcome && s.outcome !== "ok" && (
+        <p role={s.outcome === "no_results" ? "status" : "alert"} className={`rounded-lg border p-3 text-sm ${s.outcome === "no_results" ? "border-line" : s.outcome === "partial" ? "border-warn/50 bg-warn/5" : "border-bad/50 bg-bad/10 text-bad"}`}>
+          {OUTCOME_MESSAGE[s.outcome as SearchOutcome]}{s.error && !Object.values(OUTCOME_MESSAGE).includes(s.error) ? ` ${s.error}` : ""}
+        </p>
+      )}
+      {s.warnings?.length > 0 && (
+        <details className="card text-sm"><summary className="cursor-pointer">Avisos durante a verificação ({s.warnings.length})</summary>
+          <ul className="mt-2 list-disc pl-5">{s.warnings.slice(0, 50).map((w: { candidate: string; note: string }, i: number) => <li key={i}>{w.candidate}: {w.note}</li>)}</ul></details>
+      )}
       {job?.status === "queued" && s.status === "queued" && <p className="muted">Em fila. O processamento exige o worker ativo (<code>npm run worker</code>).</p>}
 
       <Section title="Progresso" id="progresso">
@@ -77,10 +89,13 @@ export default async function SearchPage({ params, searchParams }: { params: Pro
       <div className="grid gap-6 lg:grid-cols-2">
         <Section title="Fontes consultadas" id="fontes">
           {s.sources_consulted.length === 0 ? <Empty>Ainda nenhuma.</Empty> : (
-            <table className="table"><thead><tr><th>Fonte</th><th>Consulta</th><th>Data</th><th>Resultados</th></tr></thead><tbody>
-              {s.sources_consulted.map((x: { provider: string; query: string; at: string; results: number; error?: string }, i: number) => (
-                <tr key={i}><td>{x.provider}</td><td>{x.query}</td><td>{formatDateTimePT(x.at)}</td><td>{x.error ? <span className="text-bad">{x.error}</span> : x.results}</td></tr>
-              ))}
+            <table className="table"><thead><tr><th>Fonte</th><th>Consulta</th><th>Data</th><th>Estado</th><th>Resultados</th></tr></thead><tbody>
+              {s.sources_consulted.map((x: { provider: string; query: string; at: string; results: number; error?: string; status?: string }, i: number) => {
+                const st = x.status ?? (x.error ? (x.error === "não configurado" ? "not_configured" : "failed") : "ok");
+                return <tr key={i}><td>{x.provider}</td><td>{x.query}</td><td>{formatDateTimePT(x.at)}</td>
+                  <td><Badge t={st === "ok" ? "ok" : st === "failed" ? "bad" : "warn"}>{st === "ok" ? "respondeu" : st === "failed" ? "falhou" : "não configurada"}</Badge></td>
+                  <td>{st === "ok" ? x.results : <span className={st === "failed" ? "text-bad" : "text-warn"}>{x.error}</span>}</td></tr>;
+              })}
             </tbody></table>
           )}
           <p className="muted mt-2">Dados de locais: Google Maps (quando usado) · © contribuidores OpenStreetMap (ODbL).</p>
@@ -97,7 +112,7 @@ export default async function SearchPage({ params, searchParams }: { params: Pro
       </div>
 
       <Section title={`Resultados qualificados (${qualified.length})`} id="resultados">
-        {qualified.length === 0 ? <Empty>{running ? "Ainda a processar…" : "Nenhum candidato passou nos critérios para os tipos de oportunidade escolhidos. Veja os outros estados abaixo."}</Empty> : <ResultsTable rows={qualified} />}
+        {qualified.length === 0 ? <Empty>{running ? "Ainda a processar…" : s.outcome === "no_results" ? "Nenhuma empresa encontrada: as fontes responderam sem candidatos." : s.outcome === "failed" || s.outcome === "not_configured" ? "Sem resultados porque a pesquisa não chegou a correr nas fontes (ver aviso acima) — isto não significa que não existam empresas." : "Nenhum candidato passou nos critérios para os tipos de oportunidade escolhidos. Veja os outros estados abaixo."}</Empty> : <ResultsTable rows={qualified} />}
       </Section>
 
       <Section title={`Outros estados (${others.length})`} id="outros">

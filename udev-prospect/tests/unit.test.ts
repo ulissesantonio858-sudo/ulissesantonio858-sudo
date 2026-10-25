@@ -366,3 +366,43 @@ describe("regressões", () => {
     expect(companyDomain("http://127.0.0.1:3000/a/")).toBeNull();
   });
 });
+
+import { computeOutcome, type SourceLog } from "@/lib/pipeline/search-job";
+import { signSession, verifySession, localUserId, credentialsMatch } from "@/lib/session";
+
+describe("resultado da pesquisa: falha ≠ sem resultados", () => {
+  const src = (status: SourceLog["status"], kind: SourceLog["kind"] = "discovery", results = 0): SourceLog => ({ provider: "x", kind, query: "q", at: "", results, status });
+  const wsOk = src("ok", "web_search");
+  it("sem chaves → não configurada", () => expect(computeOutcome([src("not_configured"), src("not_configured", "web_search")], 0, 0, 0)).toBe("not_configured"));
+  it("rede bloqueada → falhou", () => expect(computeOutcome([src("failed"), src("not_configured")], 0, 0, 0)).toBe("failed"));
+  it("uma fonte responde e outra falha → parcial", () => expect(computeOutcome([src("ok", "discovery", 3), src("failed"), wsOk], 3, 0, 0)).toBe("partial"));
+  it("pesquisa web não configurada → parcial", () => expect(computeOutcome([src("ok", "discovery", 3), src("not_configured", "web_search")], 3, 0, 0)).toBe("partial"));
+  it("candidatos com falha ou avisos → parcial", () => {
+    expect(computeOutcome([src("ok", "discovery", 3)], 3, 1, 0)).toBe("partial");
+    expect(computeOutcome([src("ok", "discovery", 3)], 3, 0, 2)).toBe("partial");
+  });
+  it("só «nenhuma empresa encontrada» quando todas as fontes responderam sem candidatos", () => {
+    expect(computeOutcome([src("ok"), wsOk], 0, 0, 0)).toBe("no_results");
+    expect(computeOutcome([src("ok"), src("not_configured")], 0, 0, 0)).toBe("partial");
+    expect(computeOutcome([src("ok", "discovery", 2), wsOk], 2, 0, 0)).toBe("ok");
+  });
+});
+
+describe("sessão local", () => {
+  const secret = "s".repeat(64);
+  it("assina e verifica; rejeita adulteração e expiração", () => {
+    const t = signSession({ sub: "a", email: "x@y.pt", demo: false, exp: Date.now() + 10_000 }, secret);
+    expect(verifySession(t, secret)?.email).toBe("x@y.pt");
+    expect(verifySession(t, "outro".repeat(10))).toBeNull();
+    const [b, sig] = t.split(".");
+    const forged = Buffer.from(JSON.stringify({ sub: "a", email: "x@y.pt", demo: true, exp: Date.now() + 10_000 })).toString("base64url");
+    expect(verifySession(`${forged}.${sig}`, secret)).toBeNull();
+    expect(verifySession(`${b}.${sig}`, secret, Date.now() + 20_000)).toBeNull();
+  });
+  it("id local estável e credenciais em tempo constante", () => {
+    expect(localUserId("Ulisses@Exemplo.pt ")).toBe(localUserId("ulisses@exemplo.pt"));
+    expect(localUserId("a@b.pt")).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-8[0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(credentialsMatch("A@b.pt", "segredo-longo", "a@b.pt", "segredo-longo")).toBe(true);
+    expect(credentialsMatch("a@b.pt", "errado", "a@b.pt", "segredo-longo")).toBe(false);
+  });
+});
