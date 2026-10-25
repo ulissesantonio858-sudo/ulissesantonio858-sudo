@@ -104,6 +104,8 @@ export function companyDomain(url: string | null | undefined): string | null {
   const h = hostOf(n);
   if (!h) return null;
   if (SHARED_HOSTS.some((s) => h === s || h.endsWith("." + s))) return null;
+  // Um endereço IP não identifica uma empresa
+  if (/^[\d.]+$/.test(h) || h.includes(":") || h.startsWith("[")) return null;
   return h;
 }
 

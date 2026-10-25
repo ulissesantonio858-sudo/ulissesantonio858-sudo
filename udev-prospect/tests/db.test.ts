@@ -97,6 +97,7 @@ d("integração com base de dados", () => {
       expect(by.FX_A_VRSA.outcome).toMatch(/fora d/);
       expect(by.FX_CLOSED.outcome).toMatch(/encerrada/);
       expect(by["node/999"].status).toBe("duplicate");
+      expect(by.FX_A.outcome).toMatch(/^qualificada: 100 pts, confiança alta/);
 
       const co = Object.fromEntries((await db.query("select c.*, s.total, s.confidence, s.priority, s.breakdown from companies c left join scores s on s.company_id = c.id and s.is_current where c.first_search_id = $1", [sid])).rows.map((c) => [c.google_place_id, c]));
       // Clínica A: marcação partida reproduzida, identidade e localização confirmadas

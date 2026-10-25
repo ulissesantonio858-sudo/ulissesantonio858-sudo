@@ -69,20 +69,20 @@ export function buildDrafts(ctx: OutreachContext): Draft[] {
 
   if (ctx.isAgency) {
     drafts.push({ channel: "curta", subject: null, evidenceIds: ev, body:
-      `Olá! Sou o ${me}, desenvolvedor web (WordPress, React e lojas online). Vi o trabalho da ${n} em marketing e redes sociais e queria perguntar se faria sentido uma parceria: eu desenvolvo os sites dos vossos clientes e a ${n} mantém a relação comercial e os conteúdos. Podemos falar 15 minutos esta semana?` });
+      `Olá! Sou o ${me}, desenvolvedor web (WordPress, React e lojas online). Vi o vosso trabalho em marketing e redes sociais (${n}) e queria perguntar se faria sentido uma parceria: eu desenvolvo os sites dos vossos clientes e a vossa equipa mantém a relação comercial e os conteúdos. Podemos falar 15 minutos esta semana?` });
     drafts.push({ channel: "email", subject: `Parceria em desenvolvimento de sites — ${n}`, evidenceIds: ev, body:
-      `Olá,\n\nSou o ${me}, desenvolvedor e web designer em Portugal. Trabalho com WordPress/Elementor, React e Node.js, em sites institucionais, landing pages e lojas online.\n\nAo ver a apresentação da ${n}, ${observationPhrase(o)}. Por isso pensei que uma parceria poderia ser útil: eu trato do desenvolvimento, manutenção e integrações, e a ${n} mantém a relação com o cliente e os serviços de conteúdos e marketing.\n\nSe fizer sentido, posso explicar como costumo organizar este tipo de colaboração numa conversa curta.\n\nCumprimentos,\n${me}` });
+      `Olá,\n\nSou o ${me}, desenvolvedor e web designer em Portugal. Trabalho com WordPress/Elementor, React e Node.js, em sites institucionais, landing pages e lojas online.\n\nAo ver a vossa apresentação online (${n}), ${observationPhrase(o)}. Por isso pensei que uma parceria poderia ser útil: eu trato do desenvolvimento, manutenção e integrações, e a vossa equipa mantém a relação com o cliente e os serviços de conteúdos e marketing.\n\nSe fizer sentido, posso explicar como costumo organizar este tipo de colaboração numa conversa curta.\n\nCumprimentos,\n${me}` });
   } else if (o.type === "website_not_located") {
     drafts.push({ channel: "curta", subject: null, evidenceIds: ev, body:
-      `Olá, bom dia! Sou o ${me}, desenvolvedor web. Procurei a ${n} online e não encontrei um site oficial — pode existir e ter-me escapado. Têm atualmente algum site ou página onde os clientes vos encontram? Se for útil, posso partilhar algumas ideias, sem compromisso.` });
-    drafts.push({ channel: "email", subject: `Presença online da ${n}`, evidenceIds: ev, body:
-      `Olá,\n\nSou o ${me}, desenvolvedor e web designer em Portugal.\n\nAo pesquisar a ${n} pelo nome e localidade, não encontrei um site oficial nas fontes que consultei. Pode ser que exista e não o tenha encontrado, por isso pergunto: têm atualmente algum site ou página onde os clientes possam ver os serviços e contactar-vos?\n\nSe for um tema que vos interesse, terei gosto em conversar uns minutos e mostrar o que costumo fazer neste tipo de casos.\n\nCumprimentos,\n${me}` });
+      `Olá, bom dia! Sou o ${me}, desenvolvedor web. Procurei «${n}» online e não encontrei um site oficial — pode existir e ter-me escapado. Têm atualmente algum site ou página onde os clientes vos encontram? Se for útil, posso partilhar algumas ideias, sem compromisso.` });
+    drafts.push({ channel: "email", subject: `Presença online — ${n}`, evidenceIds: ev, body:
+      `Olá,\n\nSou o ${me}, desenvolvedor e web designer em Portugal.\n\nAo pesquisar «${n}» pelo nome e localidade, não encontrei um site oficial nas fontes que consultei. Pode ser que exista e não o tenha encontrado, por isso pergunto: têm atualmente algum site ou página onde os clientes possam ver os serviços e contactar-vos?\n\nSe for um tema que vos interesse, terei gosto em conversar uns minutos e mostrar o que costumo fazer neste tipo de casos.\n\nCumprimentos,\n${me}` });
   } else {
     const obs = observationPhrase(o);
     drafts.push({ channel: "curta", subject: null, evidenceIds: ev, body:
-      `Olá, bom dia! Sou o ${me}, desenvolvedor web. Ao visitar o site da ${n} reparei que ${obs}. Se quiser, explico-lhe em poucos minutos o que estará a acontecer e como se pode corrigir. Faz sentido falarmos?` });
-    drafts.push({ channel: "email", subject: `Uma observação sobre o site da ${n}`, evidenceIds: ev, body:
-      `Olá,\n\nSou o ${me}, desenvolvedor e web designer em Portugal (WordPress, React, manutenção e otimização para telemóvel).\n\nAo visitar o site da ${n}, ${obs}. Pode já estar identificado do vosso lado; se não estiver, achei que seria útil saberem.\n\nSe fizer sentido, posso mostrar-lhe numa conversa curta o que observei e uma forma simples de o resolver.\n\nCumprimentos,\n${me}` });
+      `Olá, bom dia! Sou o ${me}, desenvolvedor web. Ao visitar o vosso site (${n}) reparei que ${obs}. Se quiser, explico-lhe em poucos minutos o que estará a acontecer e como se pode corrigir. Faz sentido falarmos?` });
+    drafts.push({ channel: "email", subject: `Uma observação sobre o site — ${n}`, evidenceIds: ev, body:
+      `Olá,\n\nSou o ${me}, desenvolvedor e web designer em Portugal (WordPress, React, manutenção e otimização para telemóvel).\n\nAo visitar o vosso site (${n}), ${obs}. Pode já estar identificado do vosso lado; se não estiver, achei que seria útil saberem.\n\nSe fizer sentido, posso mostrar-lhe numa conversa curta o que observei e uma forma simples de o resolver.\n\nCumprimentos,\n${me}` });
   }
   const fu = Math.max(0, Math.min(2, ctx.followups));
   if (fu >= 1) drafts.push({ channel: "followup_1", subject: `Re: ${drafts[1].subject}`, evidenceIds: ev, body:

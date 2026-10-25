@@ -197,5 +197,6 @@ export async function verifyCompany(db: Db, companyIn: CompanyRow, ctx: VerifyCo
     [company.id, websiteStatus, identityStatus, locationStatus, distance]);
   company = upd.rows[0];
   const score = await scoreCompany(db, company, ctx.rubric, ctx.rubricVersion, { targetNiches: ctx.targetNiches, mode: ctx.mode });
+  company = (await db.query<CompanyRow>("select * from companies where id = $1", [company.id])).rows[0];
   return { company, score, notes };
 }

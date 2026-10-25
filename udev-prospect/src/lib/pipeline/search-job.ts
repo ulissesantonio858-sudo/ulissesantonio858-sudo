@@ -63,13 +63,17 @@ export async function runSearch(userId: string, searchId: string, opts: RunOptio
             total += inserted;
             sources.push({ provider: provider.id, query, at, results: found.length });
           } catch (e) {
-            sources.push({ provider: provider.id, query, at, results: 0, error: (e as Error).message.slice(0, 300) });
+            const cause = (e as { cause?: { code?: string; message?: string } }).cause;
+            const detail = cause?.code ?? cause?.message;
+            sources.push({ provider: provider.id, query, at, results: 0, error: `${(e as Error).message}${detail ? ` (${detail})` : ""}`.slice(0, 300) });
             if (e instanceof QuotaExceededError) break;
           }
         }
       }
     }
-    await withUser(userId, (db) => db.query("update searches set sources_consulted = sources_consulted || $2::jsonb, stage = 'processing' where id = $1", [searchId, JSON.stringify(sources)]));
+    const allFailed = sources.length > 0 && sources.every((x) => x.error);
+    await withUser(userId, (db) => db.query("update searches set sources_consulted = sources_consulted || $2::jsonb, stage = 'processing', error = $3 where id = $1",
+      [searchId, JSON.stringify(sources), allFailed ? "Nenhuma fonte respondeu (ver «Fontes consultadas»). Não há candidatos — nada foi inventado." : null]));
   }
 
   // Fase 2 — verificação candidato a candidato
@@ -183,5 +187,5 @@ async function processCandidate(db: Db, searchId: string, c: DiscoveryCandidate 
   }, { webSearch: opts.providers.webSearch, ai: opts.providers.ai, guard, site: opts.site });
   if (decision.kind === "match") await logActivity(db, company.id, "system", `Reverificada na pesquisa ${searchId.slice(0, 8)} (${decision.reason}).`);
   const q = result.company.qualification_status;
-  return { status: "done", outcome: `${q === "qualified" ? "qualificada" : q === "review" ? "para revisão" : "descartada"}: ${result.score.total} pts, confiança ${result.score.confidence}${result.notes.length ? " — " + result.notes.join("; ") : ""}`, companyId: company.id };
+  return { status: "done", outcome: `${q === "qualified" ? "qualificada" : q === "review" ? "para revisão" : "descartada"}: ${result.score.total} pts, confiança ${({ alto: "alta", medio: "média", baixo: "baixa" } as Record<string, string>)[result.score.confidence]}${result.notes.length ? " — " + result.notes.join("; ") : ""}`, companyId: company.id };
 }

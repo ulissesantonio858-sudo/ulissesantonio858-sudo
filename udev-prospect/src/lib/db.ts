@@ -1,4 +1,7 @@
-import { Pool, type PoolClient } from "pg";
+import { Pool, types, type PoolClient } from "pg";
+
+// Datas civis (tipo DATE) chegam como texto AAAA-MM-DD, sem conversão de fuso horário.
+types.setTypeParser(1082, (v: string) => v);
 
 /*
  * Acesso à base de dados (Postgres/Supabase) a partir do servidor.

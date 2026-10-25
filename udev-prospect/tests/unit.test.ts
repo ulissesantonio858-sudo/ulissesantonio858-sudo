@@ -360,3 +360,9 @@ describe("adaptadores (fixtures — não provam o funcionamento das APIs reais)"
     expect(todayLisbon(new Date("2026-07-01T23:30:00Z"))).toBe("2026-07-02"); // verão: UTC+1
   });
 });
+
+describe("regressões", () => {
+  it("IP não conta como domínio da empresa", () => {
+    expect(companyDomain("http://127.0.0.1:3000/a/")).toBeNull();
+  });
+});
